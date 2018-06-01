@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from keras.engine import Layer
+from keras.engine import Layer, InputSpec
 from keras.layers.normalization import BatchNormalization
 from keras import initializers
 from keras import regularizers
@@ -23,7 +23,7 @@ class RevCompConv1DBatchNorm(BatchNormalization):
         super(RevCompConv1DBatchNorm, self).build(modified_input_shape)
         self.input_spec = InputSpec(
                             ndim=len(input_shape),
-                            axes={self.axis: int(self.num_input_chan/2)})
+                            axes={self.axis: self.num_input_chan})
 
     def call(self, inputs, training=None):
         orig_inputs = inputs
@@ -34,7 +34,7 @@ class RevCompConv1DBatchNorm(BatchNormalization):
                      inputs[:,:,int(self.num_input_chan/2):][:,:,::-1]],
             axis=1)
 
-        input_shape = K.init_shape(inputs)
+        input_shape = K.int_shape(inputs)
         #Prepare broadcasting shape
         ndim = len(input_shape)
         reduction_axes = list(range(len(input_shape)))
@@ -69,7 +69,7 @@ class RevCompConv1DBatchNorm(BatchNormalization):
                         broadcast_moving_variance,
                         broadcast_beta,
                         broadcast_gamma,
-                        axis=self.axis,
+                        #axis=self.axis,
                         epsilon=self.epsilon)
             else:
                 return K.batch_normalization(
@@ -78,7 +78,7 @@ class RevCompConv1DBatchNorm(BatchNormalization):
                         self.moving_variance,
                         self.beta,
                         self.gamma,
-                        axis=self.axis,
+                        #axis=self.axis,
                         epsilon=self.epsilon) 
 
         #If the learning phase is *static* and set to inference: 

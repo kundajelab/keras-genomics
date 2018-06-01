@@ -1,7 +1,9 @@
 from __future__ import absolute_import
 from __future__ import division
 
+from keras.engine import InputSpec
 from keras.layers.core import Dense
+from keras import backend as K
 
 
 class DenseAfterRevcompConv1D(Dense):
@@ -18,7 +20,7 @@ class DenseAfterRevcompConv1D(Dense):
         self.input_length = input_length
 
         self.kernel = self.add_weight(
-                    shape=(input_length*num_chan/2, self.output_dim),
+                    shape=(int(input_length*num_chan/2), self.units),
                            initializer=self.kernel_initializer,
                            name='kernel',
                            regularizer=self.kernel_regularizer,
@@ -38,10 +40,10 @@ class DenseAfterRevcompConv1D(Dense):
     def call(self, inputs):
         kernel = K.reshape(self.kernel,
                            (self.input_length, int(self.num_chan/2),
-                            self.output_dim))
+                            self.units))
         concatenated_reshaped_kernel = K.reshape(K.concatenate(
             tensors=[kernel, kernel[::-1,::-1,:]], axis=1),
-            (self.input_length*self.num_chan, self.output_dim))
+            (self.input_length*self.num_chan, self.units))
         reshaped_inputs =\
             K.reshape(inputs, (-1, self.input_length*self.num_chan))
         output = K.dot(reshaped_inputs,
@@ -56,6 +58,6 @@ class DenseAfterRevcompConv1D(Dense):
         assert input_shape and len(input_shape) == 3
         assert input_shape[-1] is not None
         assert input_shape[-2] is not None
-        output_shape = [input_shape[0], self.output_dim]
+        output_shape = [input_shape[0], self.units]
         return tuple(output_shape)
 
