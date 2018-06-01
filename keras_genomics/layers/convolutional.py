@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 from keras.layers.convolutional import Conv1D
 from keras.utils import conv_utils
 from keras import backend as K
