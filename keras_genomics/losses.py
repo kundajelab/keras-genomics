@@ -1,5 +1,5 @@
 from __future__ import division, absolute_import
-from . import backend as K
+from keras import backend as K
 
 
 def ambig_binary_crossentropy(y_true,y_pred):
