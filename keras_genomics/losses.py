@@ -22,9 +22,16 @@ def weighted_regression(y_true,y_pred):
     binary_task_crossentropy_loss = K.mean(K.binary_crossentropy(
         target=y_true[:,0:1], output=binary_task_predicted_logits,
         from_logits=True))
+    positives_upweight_factor = K.sum(1.0-y_true[:,0])/K.sum(y_true[:,0])
+    regression_weight = y_true[:,0:1]*(positives_upweight_factor) + (1-y_true[:,0:1])*1.0
     regression_loss = K.mean(K.square(regression_task_predictions -
-                                      y_true[:,1:2])*y_true[:,0:1],
+                                      y_true[:,1:2])*regression_weight,
                              axis=-1)
-    return binary_task_crossentropy_loss + regression_loss
+    total_bce_loss = K.sum(binary_task_crossentropy_loss)
+    total_regression_loss = K.sum(regression_loss)
+    upscaled_regression_loss_factor = 1.0
+    #upscaled_regression_loss_factor = K.stop_gradient(K.minimum(10.0,(total_bce_loss)/(K.maximum(total_regression_loss,0.01))))
+    
+    return binary_task_crossentropy_loss + regression_loss*upscaled_regression_loss_factor
     
     
