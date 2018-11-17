@@ -14,12 +14,12 @@ def regression_and_classification(y_true, y_pred):
     # if y_true > 1, treated as a positive
     # nothing in between 
 
-    y_true_binarized = K.cast(K.greater_equal(y_true, 1.0), K.floatx) 
+    y_true_binarized = K.cast(K.greater_equal(y_true, 1.0), K.floatx()) 
     hard_sigmoid_pred = K.hard_sigmoid(y_pred)
     linearized_hard_sigmoid_pred = (0.2*y_pred) + 0.5
     linearized_hard_sigmoid_pred = (
         K.cast(K.greater(linearized_hard_sigmoid_pred, 0.0),
-               K.floatx)*linearized_hard_sigmoid_pred)
+               K.floatx())*linearized_hard_sigmoid_pred)
     binary_crossentropy_loss = K.mean(K.binary_crossentropy(
                                         output=hard_sigmoid_pred,
                                         target=y_true_binarized), axis=-1)
