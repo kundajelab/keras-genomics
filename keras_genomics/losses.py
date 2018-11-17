@@ -8,6 +8,23 @@ def ambig_binary_crossentropy(y_true,y_pred):
                       *non_ambig, axis=-1)
 
 
+def regression_and_classification(y_true, y_pred):
+
+    #if y_true is 0, treated as a negative
+    # if y_true > 1, treated as a positive
+    # nothing in between 
+
+    y_true_binarized = K.cast(K.greater_equal(y_true, 1.0), K.floatx) 
+    hard_sigmoid_pred = K.hard_sigmoid(y_pred)
+    linearized_hard_sigmoid_pred = (0.2*y_pred) + 0.5
+    binary_crossentropy_loss = K.mean(K.binary_crossentropy(
+                                        output=hard_sigmoid_pred,
+                                        target=y_true_binarized), axis=-1)
+    mse_loss = K.mean(2.71*K.square(linearized_hard_sigmoid_pred - y_true),
+                      axis=-1)
+    return binary_crossentropy_loss + mse_loss 
+
+
 def weighted_regression(y_true,y_pred):
     #y_true and y_pred are structured as follows:
     #first dimension is sample,
