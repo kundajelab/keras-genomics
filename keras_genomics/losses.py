@@ -26,6 +26,35 @@ def regression_and_classification(y_true, y_pred):
     return binary_crossentropy_loss + mse_loss 
 
 
+def hybrid_bce_loss(y_true,y_pred):
+    #y_true and y_pred are structured as follows:
+    #first dimension is sample,
+    #second dimension has length 2; first entry in y_pred is the *logit*
+    # of the sigmoid (we will put it through the sigmoid in the loss func and
+    # then apply binary crossentropy)
+    # second entry in y_pred is the *logit* for the IR normalized regression
+    # value(we will apply a bce error loss to this, but only for the positives)
+
+    binary_task_predicted_logits = y_pred[:,0:1]
+    ir_task_predicted_logits = y_pred[:,1:2]
+    binary_y_true = y_true[:,0:1]
+    ir_y_true = y_true[:,1:2]
+    binary_task_crossentropy_loss = K.mean(
+        K.binary_crossentropy(
+            target=binary_y_true,
+            output=binary_task_predicted_logits,
+            from_logits=True),
+        axis=-1)
+    ir_weight = binary_y_true
+    ir_task_crossentropy_loss = K.mean(
+        K.binary_crossentropy(
+            target=ir_y_true,
+            output=ir_task_predicted_logits,
+            from_logits=True)*ir_weight,
+        axis=-1)
+    return binary_task_crossentropy_loss + ir_task_crossentropy_loss
+
+
 def hybrid_loss(y_true,y_pred):
     #y_true and y_pred are structured as follows:
     #first dimension is sample,
