@@ -2,6 +2,7 @@ from __future__ import absolute_import
 from __future__ import division
 
 from keras.engine import InputSpec
+from keras.engine import Layer
 from keras.layers.core import Dense
 from keras import backend as K
 
