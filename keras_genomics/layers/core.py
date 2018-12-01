@@ -92,6 +92,7 @@ class SeparableFC(Layer):
                   'positional_constraint': self.positional_constraint}
         base_config = super(SeparableFC, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
+get_custom_objects().update({'SeparableFC': SeparableFC})
 
 
 class DenseAfterRevcompConv1D(Dense):
