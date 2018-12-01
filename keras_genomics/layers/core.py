@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
-from .. import backend as K
+from keras import backend as K
 from .. import activations
 from .. import initializers
 from .. import regularizers
