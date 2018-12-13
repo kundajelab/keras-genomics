@@ -1,4 +1,5 @@
 README.md
+setup.py
 keras_genomics/__init__.py
 keras_genomics/losses.py
 keras_genomics.egg-info/PKG-INFO
