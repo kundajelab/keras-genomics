@@ -5,11 +5,11 @@ from setuptools import find_packages
 if __name__== '__main__':
     setup(include_package_data=True,
           name='keras_genomics',
-          version='2.0.1',
+          version='0.1.0.0',
           description='Keras Deep Learning for Genomics layers',
           author='Kundaje Lab',
           author_email='avanti.shrikumar@gmail.com',
-          url='https://github.com/farizrahman4u/keras-genomics',
+          url='https://github.com/kundajelab/keras-genomics',
           license='MIT',
           install_requires=['keras'],
           extras_require={
