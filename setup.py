@@ -12,13 +12,6 @@ if __name__== '__main__':
           url='https://github.com/kundajelab/keras-genomics',
           license='MIT',
           install_requires=['keras'],
-          extras_require={
-              'h5py': ['h5py'],
-              'tests': ['pytest',
-                        'pytest-pep8',
-                        'pytest-xdist',
-                        'pytest-cov'],
-          },
           classifiers=[
               'Development Status :: 3 - Alpha',
               'Intended Audience :: Developers',
