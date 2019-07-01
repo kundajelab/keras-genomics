@@ -95,7 +95,6 @@ class Conv1DTranspose(Conv1D):
                  kernel_constraint=None,
                  bias_constraint=None,
                  **kwargs):
-        assert data_format=="channels_last" #for now, stick to basics
         super(Conv1DTranspose, self).__init__(
             filters,
             kernel_size,
@@ -123,6 +122,9 @@ class Conv1DTranspose(Conv1D):
                     raise ValueError('Stride ' + str(self.strides) + ' must be '
                                      'greater than output padding ' +
                                      str(self.output_padding))
+        
+        assert self.data_format=="channels_last" #for now, stick to basics 
+       
 
     def build(self, input_shape):
         if len(input_shape) != 3:
@@ -249,7 +251,7 @@ class RevCompConv1DTranspose(Conv1DTranspose):
 
         revcomp_kernel =\
             K.concatenate([self.kernel,
-                           self.kernel[::-1,::-1,::-1]],axis=-1)
+                           self.kernel[::-1,::-1,::-1]],axis=-2)
         if (self.use_bias):
             revcomp_bias = K.concatenate([self.bias,
                                           self.bias[::-1]], axis=-1)
