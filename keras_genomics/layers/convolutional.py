@@ -304,7 +304,8 @@ class RevCompConv1D(Conv1D):
         length = conv_utils.conv_output_length(input_shape[1],
                                                self.kernel_size[0],
                                                padding=self.padding,
-                                               stride=self.strides[0])
+                                               stride=self.strides[0],
+                                               dilation=self.dilation_rate[0])
         return (input_shape[0], length, 2*self.filters)
 
     def call(self, inputs):
