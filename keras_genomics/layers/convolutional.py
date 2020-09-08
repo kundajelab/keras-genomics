@@ -1,8 +1,12 @@
 from __future__ import absolute_import
 
 from keras.layers.convolutional import Conv1D
+from keras.engine import Layer
+from keras.engine import InputSpec
 from keras.utils import conv_utils
 from keras import backend as K
+from keras import initializers
+import numpy as np
 
 
 class Conv1DTranspose(Conv1D):
@@ -337,4 +341,102 @@ class RevCompConv1D(Conv1D):
             outputs = self.activation(outputs)
         return outputs
 
+
+class WeightedSum1D(Layer):
+    '''Learns a weight for each position, for each channel, and sums
+    lengthwise.
+
+    # Arguments
+        symmetric: if want weights to be symmetric along length, set to True
+        input_is_revcomp_conv: if the input is [RevCompConv1D], set to True for
+            added weight sharing between reverse-complement pairs
+        smoothness_penalty: penalty to be applied to absolute difference
+            of adjacent weights in the length dimension
+        bias: whether or not to have bias parameters
+
+    # Input shape
+        3D tensor with shape: `(samples, steps, features)`.
+
+    # Output shape
+        2D tensor with shape: `(samples, features)`.
+    '''
+    def __init__(self, symmetric, input_is_revcomp_conv,
+                       smoothness_penalty=None, bias=False,
+                       **kwargs):
+        super(WeightedSum1D, self).__init__(**kwargs)
+        self.symmetric = symmetric
+        self.input_is_revcomp_conv = input_is_revcomp_conv
+        self.smoothness_penalty = smoothness_penalty
+        self.bias = bias
+        self.input_spec = [InputSpec(ndim=3)]
+
+    def build(self, input_shape): 
+        #input_shape[0] is the batch index
+        #input_shape[1] is length of input
+        #input_shape[2] is number of filters
+
+        #Equivalent to 'fanintimesfanouttimestwo' from the paper
+        limit = np.sqrt(6.0/(input_shape[1]*input_shape[2]*2))  
+        self.init = initializers.uniform(-1*limit, limit)
+
+        if (self.symmetric == False):
+            W_length = input_shape[1]
+        else:
+            self.odd_input_length = input_shape[1]%2.0 == 1
+            #+0.5 below turns floor into ceil
+            W_length = int(input_shape[1]/2.0 + 0.5)
+
+        if (self.input_is_revcomp_conv == False):
+            W_chan = input_shape[2]
+        else:
+            assert input_shape[2]%2==0,\
+             "if input is revcomp conv, # incoming channels would be even"
+            W_chan = int(input_shape[2]/2)
+
+        self.W_shape = (W_length, W_chan)
+        self.b_shape = (W_chan,)
+        self.W = self.add_weight(self.W_shape,
+             initializer=self.init,
+             name='{}_W'.format(self.name),
+             regularizer=(None if self.smoothness_penalty is None else
+                         regularizers.SmoothnessRegularizer(
+                          self.smoothness_penalty)))
+        if (self.bias):
+            assert False, "No bias was specified in original experiments"
+
+        self.built = True
+
+    #3D input -> 2D output (loses length dimension)
+    def compute_output_shape(self, input_shape):
+        return (input_shape[0], input_shape[2])
+
+    def call(self, x, mask=None):
+        if (self.symmetric == False):
+            W = self.W
+        else:
+            W = K.concatenate(
+                 tensors=[self.W,
+                          #reverse along length, concat along length
+                          self.W[::-1][(1 if self.odd_input_length else 0):]],
+                 axis=0)
+        if (self.bias):
+            b = self.b
+        if (self.input_is_revcomp_conv):
+            #reverse along both length and channel dims, concat along chan
+            #if symmetric=True, reversal along length here makes no diff
+            W = K.concatenate(tensors=[W, W[::-1,::-1]], axis=1)
+            if (self.bias):
+                b = K.concatenate(tensors=[b, b[::-1]], axis=0)
+        output = K.sum(x*K.expand_dims(W,0), axis=1)
+        if (self.bias):
+            output = output + K.expand_dims(b,0)
+        return output 
+
+    def get_config(self):
+        config = {'symmetric': self.symmetric,
+                  'input_is_revcomp_conv': self.input_is_revcomp_conv,
+                  'smoothness_penalty': self.smoothness_penalty,
+                  'bias': self.bias}
+        base_config = super(WeightedSum1D, self).get_config()
+        return dict(list(base_config.items()) + list(config.items()))
 

@@ -5,7 +5,7 @@ from setuptools import find_packages
 if __name__== '__main__':
     setup(include_package_data=True,
           name='keras_genomics',
-          version='0.1.1.1',
+          version='0.1.2.0',
           description='Keras Deep Learning for Genomics layers',
           author='Kundaje Lab',
           author_email='avanti.shrikumar@gmail.com',
