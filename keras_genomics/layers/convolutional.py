@@ -395,7 +395,8 @@ class WeightedSum1D(Layer):
 
         self.W_shape = (W_length, W_chan)
         self.b_shape = (W_chan,)
-        self.W = self.add_weight(self.W_shape,
+        self.W = self.add_weight(
+             shape=self.W_shape,
              initializer=self.init,
              name='{}_W'.format(self.name),
              regularizer=(None if self.smoothness_penalty is None else
